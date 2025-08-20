@@ -1,0 +1,53 @@
+{
+  "expo": {
+    "name": "GigPulse Pro",
+    "slug": "gigpulse-pro",
+    "version": "1.2.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0b0b0b"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/a524f195-b8f0-4fdc-bd80-57cf6255eb5a"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "com.gigpulse.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#0b0b0b"
+      },
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
+        "FOREGROUND_SERVICE",
+        "POST_NOTIFICATIONS",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
+        "FOREGROUND_SERVICE",
+        "POST_NOTIFICATIONS"
+      ],
+      "versionCode": 1
+    },
+    "plugins": [],
+    "extra": {
+      "eas": {
+        "projectId": "a524f195-b8f0-4fdc-bd80-57cf6255eb5a"
+      }
+    },
+    "owner": "cesareth",
+    "runtimeVersion": {
+      "policy": "sdkVersion"
+    }
+  }
+}

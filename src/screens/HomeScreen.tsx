@@ -1,0 +1,12 @@
+import React, { useEffect, useState } from 'react';
+import { View, StyleSheet } from 'react-native';
+import { Card, Text } from 'react-native-paper';
+import { getJSON } from '../lib/storage';
+export default function HomeScreen(){
+  const [earnings,setEarnings]=useState(0),[miles,setMiles]=useState(0),[hours,setHours]=useState(0),[mpg,setMpg]=useState(25),[gas,setGas]=useState(4.5);
+  async function load(){ const list=await getJSON('earnings',[]); const sessions=await getJSON('sessions',[]); setEarnings(list.reduce((s,x)=>s+(x.amount||0),0)); setMiles(sessions.reduce((s,x)=>s+(x.distance||0)/1609.34,0)); setHours(sessions.reduce((s,x)=>s+Math.max(0,((x.endTime||0)-(x.startTime||0))/3600000),0)); setMpg(await getJSON('mpg',25)); setGas(await getJSON('gasPerGallon',4.5));}
+  useEffect(()=>{load();},[]);
+  const gasCost=(miles/mpg)*gas, net=earnings-gasCost, hr=hours>0?earnings/hours:0, pm=miles>0?earnings/miles:0;
+  return (<View style={styles.wrap}><Text variant="headlineSmall" style={styles.title}>Dashboard</Text><View style={styles.row}><Card style={styles.card}><Card.Content><Text variant="labelSmall">Gross</Text><Text variant="titleLarge">${earnings.toFixed(2)}</Text></Card.Content></Card><Card style={styles.card}><Card.Content><Text variant="labelSmall">Miles</Text><Text variant="titleLarge">{miles.toFixed(2)} mi</Text></Card.Content></Card></View><View style={styles.row}><Card style={styles.card}><Card.Content><Text variant="labelSmall">Net</Text><Text variant="titleLarge">${net.toFixed(2)}</Text></Card.Content></Card><Card style={styles.card}><Card.Content><Text variant="labelSmall">$/hr</Text><Text variant="titleLarge">${hr.toFixed(2)}</Text></Card.Content></Card></View><View style={styles.row}><Card style={styles.card}><Card.Content><Text variant="labelSmall">$/mile</Text><Text variant="titleLarge">${pm.toFixed(2)}</Text></Card.Content></Card><Card style={styles.card}><Card.Content><Text variant="labelSmall">Gas est.</Text><Text variant="titleLarge">${gasCost.toFixed(2)}</Text></Card.Content></Card></View><Text style={{color:'#9aa', marginTop:8, fontSize:12}}>Hotzones+: heatmap + pins + reminders. Tune weights in Settings.</Text></View>);
+}
+const styles=StyleSheet.create({ wrap:{flex:1,backgroundColor:'#0b0b0b',padding:14,paddingTop:20}, title:{color:'#fff',marginBottom:10}, row:{flexDirection:'row',gap:10,marginTop:6}, card:{flex:1,backgroundColor:'#141414'} });

@@ -1,0 +1,17 @@
+import React, { useEffect, useState } from 'react';
+import { View, StyleSheet, FlatList } from 'react-native';
+import { Button, Chip, Text } from 'react-native-paper';
+import MapView, { Marker, Circle } from 'react-native-maps';
+import * as Location from 'expo-location';
+import * as Notifications from 'expo-notifications';
+import { getJSON, setJSON } from '../lib/storage';
+type HS={id:string;name:string;lat:number;lng:number;radius:number;status:'idle'|'busy'|'very_busy'};
+export default function MapScreen(){
+  const [region,setRegion]=useState({latitude:36.2077,longitude:-119.3473,latitudeDelta:0.05,longitudeDelta:0.05});
+  const [hotspots,setHotspots]=useState<HS[]>([]); const [mode,setMode]=useState<'idle'|'add'>('idle'); const [status,setStatus]=useState<HS['status']>('busy');
+  useEffect(()=>{(async()=>{ const {status}=await Location.requestForegroundPermissionsAsync(); if(status==='granted'){const loc=await Location.getCurrentPositionAsync({}); setRegion(x=>({...x,latitude:loc.coords.latitude,longitude:loc.coords.longitude}));} setHotspots(await getJSON('hotspots',[]));})();},[]);
+  async function save(next:HS[]){ setHotspots(next); await setJSON('hotspots',next);}
+  const color=(s:HS['status'])=>s==='very_busy'?'rgba(255,0,0,0.35)':s==='busy'?'rgba(255,120,0,0.35)':'rgba(0,200,0,0.25)';
+  return (<View style={styles.wrap}><Text variant="headlineSmall" style={styles.title}>My Hotspots</Text><View style={{flexDirection:'row',gap:8,marginBottom:8}}><Chip selected={mode==='add'} onPress={()=>setMode(mode==='add'?'idle':'add')}>{mode==='add'?'Long-press map':'Add hotspot'}</Chip><Chip selected={status==='busy'} onPress={()=>setStatus(status==='busy'?'idle':'busy')}>Busy</Chip><Chip selected={status==='very_busy'} onPress={()=>setStatus(status==='very_busy'?'idle':'very_busy')}>Very Busy</Chip></View><MapView style={{flex:1,borderRadius:16}} region={region} onRegionChangeComplete={setRegion} onLongPress={async e=>{ if(mode!=='add')return; const name=`Hotspot ${hotspots.length+1}`; const hs=[...hotspots,{id:Date.now().toString(),name,lat:e.nativeEvent.coordinate.latitude,lng:e.nativeEvent.coordinate.longitude,radius:300,status}]; await save(hs); await Notifications.scheduleNotificationAsync({content:{title:`${name} set ${status.replace('_',' ')}`,body:'We will alert when nearby.'},trigger:null}); setMode('idle');}}>{hotspots.map(h=>(<React.Fragment key={h.id}><Marker coordinate={{latitude:h.lat,longitude:h.lng}} title={h.name} description={h.status.replace('_',' ')}/><Circle center={{latitude:h.lat,longitude:h.lng}} radius={h.radius} fillColor={color(h.status)} strokeColor="rgba(255,255,255,0.3)"/></React.Fragment>))}</MapView><FlatList style={{marginTop:6}} data={hotspots} keyExtractor={x=>x.id} renderItem={({item})=>(<View style={styles.row}><Text style={{color:'#fff',flex:1}}>{item.name} • {item.status.replace('_',' ')}</Text><Button compact mode="contained-tonal" onPress={async()=>{const next=hotspots.map(h=>h.id===item.id?{...h,status:h.status==='idle'?'busy':h.status==='busy'?'very_busy':'idle'}:h); await save(next);}}>Cycle</Button><Button compact mode="contained" onPress={async()=>await save(hotspots.filter(h=>h.id!==item.id))}>Delete</Button></View>)}/></View>);
+}
+const ViewAny=View as any; const styles=StyleSheet.create({ wrap:{flex:1,backgroundColor:'#0b0b0b',padding:14,paddingTop:20}, title:{color:'#fff',marginBottom:10}, row:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',gap:8,paddingVertical:8,borderBottomColor:'#222',borderBottomWidth:1} });
